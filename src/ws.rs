@@ -4,11 +4,11 @@ use futures::{sink::SinkExt, stream::StreamExt};
 use crate::message::Message;
 
 pub async fn ws_handler(
-    ws: WebSocketUpgrade, 
+    upgrade: WebSocketUpgrade, 
     State(state): State<RoomManager>, 
     Path(room): Path<String>
 ) -> impl axum::response::IntoResponse {
-    ws.on_upgrade(move |socket| handle_socket(socket, state, room))
+    upgrade.on_upgrade(move |socket| handle_socket(socket, state, room))
 }
 
 async fn handle_socket(socket: ws::WebSocket, state: RoomManager, room: String) {
