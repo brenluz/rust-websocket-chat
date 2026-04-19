@@ -44,3 +44,26 @@ async fn test_client_receives_message() {
     assert!(received.to_text().unwrap().contains("Hello, world!"));
 
 }
+
+#[tokio::test]
+async fn test_room_isolation() {
+    let server_url = spawn_test_server().await;
+
+    let (mut client1, _)= tokio_tungstenite::connect_async(
+        format!("{}/ws/room1", server_url)).await.unwrap();
+    let (mut client2, _)= tokio_tungstenite::connect_async(
+        format!("{}/ws/room2", server_url)).await.unwrap();
+
+    let msg = websocket_chat_server::message::Message::Chat {
+        room: "room1".into(),
+        user: "test_user".into(),
+        body: "Hello, room1!".into(),
+        timestamp: 1234567890,
+    };
+    let json_msg = serde_json::to_string(&msg).unwrap();
+    client1.send(tokio_tungstenite::tungstenite::Message::Text(json_msg.into())).await.unwrap();
+
+    let result = tokio::time::timeout(std::time::Duration::from_millis(100), client2.next()).await;
+
+    assert!(result.is_err(), "Client in room2 should not receive messages from room1" );
+}
