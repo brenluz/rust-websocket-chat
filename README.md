@@ -37,20 +37,20 @@ Server starts at `http://localhost:3000`. Connect a WebSocket client to `ws://lo
 cargo test
 ```
 
-21 tests across unit and integration. Integration tests spin up a real server on a random port and verify end-to-end message delivery between live WebSocket clients.
+14 tests across unit and integration. Integration tests spin up a real server on a random port and verify end-to-end message delivery between live WebSocket clients.
 
 ## Project Structure
 
-src/
-├── main.rs       — router setup and server entry point
-├── lib.rs        — public module declarations
-├── state.rs      — shared AppState (RoomManager + Db)
-├── message.rs    — Message enum with serde JSON serialization
-├── db.rs         — async SQLite layer (save, history, initialize)
-├── rooms.rs      — RoomManager: per-room broadcast channels
-└── ws.rs         — WebSocket handler with split read/write tasks
-tests/
-└── integration_tests.rs — end-to-end WebSocket tests
+    src/
+        main.rs       — router setup and server entry point
+        lib.rs        — public module declarations
+        state.rs      — shared AppState (RoomManager + Db)
+        message.rs    — Message enum with serde JSON serialization
+        db.rs         — async SQLite layer (save, history, initialize)
+        rooms.rs      — RoomManager: per-room broadcast channels
+        ws.rs         — WebSocket handler with split read/write tasks
+    tests/
+        integration_tests.rs — end-to-end WebSocket tests
 
 ## Architecture
 
