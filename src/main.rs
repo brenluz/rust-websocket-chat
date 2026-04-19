@@ -13,8 +13,6 @@ async fn main() {
     .route("/ws/:room", get(ws::ws_handler))
     .with_state(room_manager);
 
-
-
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app.into_make_service()).await.unwrap();
 }
