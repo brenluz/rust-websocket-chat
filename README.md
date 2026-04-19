@@ -1,5 +1,7 @@
 # rust-websocket-chat
 
+[![CI](https://github.com/brenluz/rust-websocket-chat/actions/workflows/ci.yml/badge.svg)](https://github.com/brenluz/rust-websocket-chat/actions/workflows/ci.yml)
+
 An async WebSocket chat server built in Rust, supporting multiple rooms with real-time message broadcasting and persistent message history.
 
 ## Features
