@@ -35,6 +35,12 @@ pub async fn initialize(pool: &Db) {
         .execute(pool).await.unwrap();
 }
 
+pub async fn open_db() -> Db {
+    let pool = sqlx::SqlitePool::connect("sqlite:chat.db").await.unwrap();
+    initialize(&pool).await;
+    pool
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
