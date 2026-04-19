@@ -36,7 +36,7 @@ pub async fn initialize(pool: &Db) {
 }
 
 pub async fn open_db() -> Db {
-    let pool = sqlx::SqlitePool::connect("sqlite:chat.db").await.unwrap();
+    let pool = sqlx::SqlitePool::connect("sqlite://chat.db?mode=rwc").await.unwrap();
     initialize(&pool).await;
     pool
 }
