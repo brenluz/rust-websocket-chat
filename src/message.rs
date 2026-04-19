@@ -40,4 +40,30 @@ mod tests {
         assert!(matches!(deserialized, Message::Chat { .. }));
 
     }
+
+    #[test]
+    fn test_join_message() {
+        let msg = Message::Join {
+            room: "test".into(),
+            user: "user1".into(),
+        };
+
+        let json = serde_json::to_string(&msg).unwrap();
+        println!("{}", json);
+        let deserialized: Message = serde_json::from_str(&json).unwrap();
+        assert!(matches!(deserialized, Message::Join { .. }));
+    }
+
+    #[test]
+    fn test_system_message() {
+        let msg = Message::System {
+            body: "Server will restart in 5 minutes".into(),
+            timestamp: 1234567890,
+        };
+
+        let json = serde_json::to_string(&msg).unwrap();
+        println!("{}", json);
+        let deserialized: Message = serde_json::from_str(&json).unwrap();
+        assert!(matches!(deserialized, Message::System { .. }));
+    }
 }

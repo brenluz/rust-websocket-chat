@@ -59,4 +59,66 @@ mod tests {
         assert_eq!(history.len(), 1);
         assert!(matches!(history[0], Message::Chat { .. }));
     }
+
+    #[test]
+    fn test_history_limit() {
+        let conn = Connection::open_in_memory().unwrap();
+        initialize(&conn);
+
+        for i in 0..60 {
+            let msg = Message::Chat {
+                room: "test".into(),
+                user: format!("user{}", i),
+                body: format!("Message {}", i),
+                timestamp: 1234567890 + i,
+            };
+            save_message(&msg, &conn);
+        }
+
+        let history = get_history("test", &conn);
+        assert_eq!(history.len(), 50); // Should only return the last 50 messages
+    }
+
+    #[test]
+    fn test_different_rooms() {
+        let conn = Connection::open_in_memory().unwrap();
+        initialize(&conn);
+
+        let msg1 = Message::Chat {
+            room: "room1".into(),
+            user: "user1".into(),
+            body: "Hello, room1!".into(),
+            timestamp: 1234567890,
+        };
+        let msg2 = Message::Chat {
+            room: "room2".into(),
+            user: "user2".into(),
+            body: "Hello, room2!".into(),
+            timestamp: 1234567891,
+        };
+
+        save_message(&msg1, &conn);
+        save_message(&msg2, &conn);
+
+        let history1 = get_history("room1", &conn);
+        let history2 = get_history("room2", &conn);
+        assert_eq!(history1.len(), 1);
+        assert_eq!(history2.len(), 1);
+        assert!(matches!(history1[0], Message::Chat { .. }));   
+        assert!(matches!(history2[0], Message::Chat { .. }));
+
+    }
+
+
+    #[test]
+    fn test_non_chat_message() {
+        let conn = Connection::open_in_memory().unwrap();
+        initialize(&conn);
+
+        let msg = Message::Join { room: "test".into(), user: "user1".into() };
+        save_message(&msg, &conn);
+        let history = get_history("test", &conn);
+        assert!(history.is_empty()); 
+        
+    }
 }
