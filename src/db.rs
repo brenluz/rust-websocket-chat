@@ -1,8 +1,19 @@
+//! Database functions for saving and retrieving chat messages.
+//!
+//! Uses SQLite via sqlx for async persistence. The database file is
+//! created automatically on first run.
+
 use crate::message::Message;
+
+/// Type alias for the SQLite connection pool.
 pub type Db = sqlx::SqlitePool;
 
 const HISTORY_LIMIT: usize = 50;
 
+/// Saves a chat message to the database.
+/// 
+/// Only `Chat` messages are persisted — `Join` and `System` variants
+/// are silently ignored since they are transient events.
 pub async fn save_message(message: &Message, pool: &Db) {
     match message {
         Message::Chat { room, user, body, timestamp } => {
@@ -17,8 +28,11 @@ pub async fn save_message(message: &Message, pool: &Db) {
     }
 }
 
+/// Retrieves the last 50 chat messages for a given room, ordered by timestamp descending (most recent first).
+/// Only messages of type `Chat` are returned, since `Join` and `System` messages are not stored in the database.
+/// If there are no messages for the room, an empty vector is returned.
+/// The function handles database errors gracefully by returning an empty vector if the query fails for any reason.
 pub async fn get_history(room: &str, pool: &Db) -> Vec<Message> {
-
     match sqlx::query_as::<_, (String, String, String, i64)>("SELECT room, user, body, timestamp FROM messages WHERE room = ? ORDER BY timestamp DESC LIMIT ?")
         .bind(room)
         .bind(HISTORY_LIMIT as i64)
@@ -30,11 +44,14 @@ pub async fn get_history(room: &str, pool: &Db) -> Vec<Message> {
         }
 }
 
+/// Initializes the database by creating the `messages` table if it doesn't already exist. This function should be called when the server starts to ensure the database is ready to use.
 pub async fn initialize(pool: &Db) {
     sqlx::query("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, room TEXT, user TEXT, body TEXT, timestamp INTEGER)")
         .execute(pool).await.unwrap();
 }
 
+/// Opens a connection to the SQLite database.
+/// If the database file doesn't exist, it will be created automatically.
 pub async fn open_db() -> Db {
     let pool = sqlx::SqlitePool::connect("sqlite://chat.db?mode=rwc").await.unwrap();
     initialize(&pool).await;

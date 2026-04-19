@@ -1,18 +1,32 @@
+//! Defines the `Message` enum which represents different types of messages that can be sent over the WebSocket connection.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
+
+/// Represents a message that can be sent over the WebSocket connection.
+/// 
+/// All variants are serialized to JSON with a `type` field for easy
+/// consumption in JavaScript clients.
 pub enum Message {
+    /// A chat message sent by a user in a room.
     Chat {
+        /// The name of the room this message belongs to.
         room: String,
+        /// The username of the sender.
         user: String,
+        /// The message content.
         body: String,
+        /// Unix timestamp of when the message was sent.
         timestamp: i64,
     },
+    /// Sent when a user joins a room.
     Join {
         room: String,
         user: String,
     },
+    /// A server-generated system message.
     System {
         body: String,
         timestamp: i64,

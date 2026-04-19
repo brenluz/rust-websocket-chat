@@ -1,3 +1,7 @@
+//! Room management for the chat server.
+//!     
+//! This module defines the `RoomManager` struct which handles the creation of chat rooms and broadcasting messages to all clients subscribed to a room. It uses Tokio's `broadcast` channels to efficiently manage message distribution without needing to track individual client connections.
+
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::sync::Arc;
@@ -5,21 +9,26 @@ use tokio::sync::broadcast;
 
 use crate::message::Message;
 
+/// Maximum number of messages that can be buffered in a broadcast channel.
+/// Clients that fall behind by more than this number of messages will be disconnected.
 const CHANNEL_CAPACITY: usize = 100;
 
+/// Manages chat rooms and message broadcasting.
 #[derive(Clone)]
 pub struct RoomManager {
+    // Arc<Mutex<...>> allows RoomManager to be cloned and shared across async tasks safely
     inner: Arc<Mutex<HashMap<String, broadcast::Sender<Message>>>>
 }
 
 impl RoomManager {
-
+    /// Creates a new `RoomManager` instance.
     pub fn new() -> Self {
         RoomManager {
             inner: Arc::new(Mutex::new(HashMap::new()))
         }
     }
 
+    /// Subscribes a client to a room. If the room doesn't exist, it will be created automatically.
     pub fn subscribe(&self, room: &str) -> broadcast::Receiver<Message> {
         let mut rooms = self.inner.lock().unwrap();
         if let Some(sender) = rooms.get(room) {
@@ -31,6 +40,7 @@ impl RoomManager {
         }
     }
 
+    /// Broadcasts a message to all clients subscribed to the specified room.
     pub fn broadcast(&self, room: &str, message: Message) {
         let rooms = self.inner.lock().unwrap();
         if let Some(sender) = rooms.get(room) {
